@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Logarithms — Creator Tools</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+:root{
+  --accent:#2f80ed;
+  --dark-bg:#0f172a;
+  --card:#1e293b;
+  --text:#e6eefc;
+  --muted:#94a3b8;
+}
+html,body{height:100%;margin:0;font-family:"Segoe UI",Tahoma, sans-serif;background:var(--dark-bg);color:var(--text);}
+
+/* Landing */
+#landing{height:100vh;display:flex;align-items:center;justify-content:center;position:relative;padding:20px;box-sizing:border-box;}
+#hidden-btn{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:9999;}
+#message{text-align:center;max-width:900px;line-height:1.6;padding:0 20px;font-size:18px;color:var(--text);}
+
+/* Modal */
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:10000;align-items:center;justify-content:center;}
+.modal{background:var(--card);padding:22px;border-radius:10px;width:360px;box-shadow:0 12px 40px rgba(0,0,0,.6);}
+.modal h2{margin:0 0 10px;color:var(--accent);font-size:18px;}
+.modal input, .modal textarea{width:100%;padding:10px;margin-top:8px;border-radius:6px;border:1px solid #243044;background:#0b1220;color:var(--text);}
+.row{display:flex;justify-content:flex-end;gap:8px;margin-top:12px;}
+.btn{padding:8px 12px;border-radius:6px;border:none;cursor:pointer;font-weight:600;}
+.btn.primary{background:var(--accent);color:#fff;}
+.btn.ghost{background:transparent;color:#cfe4ff;border:1px solid rgba(255,255,255,.08);}
+
+/* Menu */
+#menu{display:none;height:100vh;background:var(--dark-bg);color:#f8fafc;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;box-sizing:border-box;}
+#toolList{display:flex;flex-direction:column;gap:10px;align-items:center;}
+.option{background:var(--card);border:1px solid #334155;border-radius:10px;padding:14px 28px;cursor:pointer;transition:.15s;min-width:280px;position:relative;display:flex;justify-content:center;align-items:center;}
+.option:hover{background:#334155;}
+.option .delete-btn{position:absolute;right:8px;top:6px;background:#ef4444;border:none;color:#fff;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:12px;}
+#menuHeader{display:flex;align-items:center;justify-content:space-between;width:100%;max-width:960px;}
+#addToolBtn,#changeAccessBtn,#goToLandingBtn,#editMessageBtn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 12px;cursor:pointer;font-weight:600;}
+#changeAccessBtn{background:#1e40af;margin-right:8px;}
+#goToLandingBtn{background:#059669;margin-right:8px;}
+#editMessageBtn{background:#7c3aed;margin-right:8px;}
+footer{color:var(--muted);margin-top:8px;}
+
+/* Tool Pages */
+.tool-page{display:none;min-height:100vh;background:var(--dark-bg);color:var(--text);padding:20px;box-sizing:border-box;}
+.container{max-width:960px;margin:0 auto;background:var(--card);padding:20px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.4);}
+.controls,.buttons{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0;}
+input[type=text],textarea,select,input[type=password]{flex:1;padding:10px;border-radius:6px;border:1px solid #475569;background:#0b1220;color:var(--text);}
+textarea{width:100%;height:300px;font-family:monospace;resize:vertical;}
+iframe{width:100%;height:400px;border:1px solid #334155;border-radius:6px;margin-top:10px;background:#0b1220;}
+.back-btn{background:var(--accent);color:#fff;border:none;border-radius:6px;padding:10px 16px;cursor:pointer;font-weight:600;margin-bottom:12px;}
+.fullscreen-btn{background:#1e40af;color:#fff;border:none;border-radius:6px;padding:8px 14px;cursor:pointer;font-weight:600;}
+.fullscreen-btn:hover{background:#2563eb;}
+
+/* white flash overlay (for 0.5s) */
+#flashOverlay{position:fixed;inset:0;background:#fff;opacity:0;z-index:20000;pointer-events:none;transition:opacity .05s linear;}
+/* small helpers */
+.hidden{display:none !important}
+
+/* small show/hide toggle style */
+.inline-toggle {display:flex;gap:8px;align-items:center;}
+.toggle-btn {padding:6px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.06);background:transparent;color:var(--text);cursor:pointer;}
+.toggle-btn:hover{background:rgba(255,255,255,.02);}
+
+/* Add tool tabs */
+.tool-tabs {
+    display: flex;
+    margin-bottom: 16px;
+    border-bottom: 1px solid #334155;
+}
+
+.tool-tab {
+    flex: 1;
+    padding: 8px 12px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+}
+
+.tool-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+}
+
+.tool-tab:hover {
+    color: var(--text);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.file-input-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    margin-bottom: 12px;
+}
+
+.file-input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #243044;
+    background: #0b1220;
+    color: var(--text);
+    cursor: pointer;
+}
+
+.file-input::file-selector-button {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    margin-right: 8px;
+    cursor: pointer;
+}
+
+/* Custom Tool Styling */
+.custom-tool-page {
+    display: none;
+    min-height: 100vh;
+    background: var(--dark-bg);
+    color: var(--text);
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.custom-tool-toolbar {
+    background: var(--card);
+    border-radius: 8px 8px 0 0;
+    padding: 12px 16px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    border-bottom: 1px solid #334155;
+    margin-bottom: 0;
+}
+
+.custom-tool-container {
+    background: var(--card);
+    border-radius: 0 0 8px 8px;
+    padding: 20px;
+    margin: 0 auto;
+    max-width: 960px;
+    box-shadow: 0 6px 18px rgba(0,0,0,.4);
+    min-height: 400px;
+}
+
+.custom-tool-content {
+    width: 100%;
+    height: 400px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+}
+
+.toolbar-btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.toolbar-btn:hover {
+    background: #1e40af;
+}
+
+.toolbar-btn.back {
+    background: #6b7280;
+}
+
+.toolbar-btn.back:hover {
+    background: #4b5563;
+}
+
+.toolbar-btn.reload {
+    background: #059669;
+}
+
+.toolbar-btn.reload:hover {
+    background: #047857;
+}
+
+.toolbar-separator {
+    width: 1px;
+    height: 20px;
+    background: #475569;
+    margin: 0 4px;
+}
+</style>
+</head>
+<body>
+
+<!-- white flash overlay -->
+<div id="flashOverlay"></div>
+
+<!-- Landing -->
+<section id="landing">
+  <div id="message">
+    A logarithm is a mathematical operation that is the inverse of exponentiation,<br>
+    essentially asking, "What exponent is needed for a specific base<br>
+    to produce a certain number?". For example, in the exponential<br>
+    equation 2³ = 8, the logarithm of 8 with a base of 2 is 3 (<em>log₂(8) = 3</em>).<br>
+    Logarithms convert multiplicative relationships into additive ones and are used in<br>
+    many scientific fields: earthquake intensity (Richter), loudness (dB), and acidity (pH).
+  </div>
+  <!-- invisible full-screen trigger -->
+  <div id="hidden-btn" title=""></div>
+</section>
+
+<!-- Access Modal -->
+<div id="accessModal" class="modal-backdrop">
+  <div class="modal">
+    <h2>Creator Access Code</h2>
+    <div class="inline-toggle">
+      <input id="accessCodeInput" type="password" placeholder="Enter creator access code" />
+      <button id="toggleAccessShow" class="toggle-btn" type="button">Show</button>
+    </div>
+    <div class="row">
+      <button id="cancelAccess" class="btn ghost">Cancel</button>
+      <button id="submitAccess" class="btn primary">Enter</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Tool Modal -->
+<div id="addModal" class="modal-backdrop">
+  <div class="modal" style="width:460px;">
+    <h2>Add New Tool</h2>
+    <input id="newToolName" type="text" placeholder="Tool Name (e.g., Quiz Tool)" />
+    
+    <!-- Tool Tabs -->
+    <div class="tool-tabs">
+      <button id="pasteTab" class="tool-tab active">📝 Paste Code</button>
+      <button id="uploadTab" class="tool-tab">📁 Upload File</button>
+    </div>
+    
+    <!-- Paste Content -->
+    <div id="pasteContent" class="tab-content active">
+      <textarea id="newToolHTML" placeholder="Paste tool HTML here. Include container markup and any scripts you need."></textarea>
+    </div>
+    
+    <!-- Upload Content -->
+    <div id="uploadContent" class="tab-content">
+      <div class="file-input-wrapper">
+        <input id="toolFileInput" type="file" accept=".html,.htm,.txt" class="file-input">
+      </div>
+      <p style="font-size:13px;color:var(--muted);margin:0;">Upload HTML/text files</p>
+    </div>
+    
+    <div class="row">
+      <button id="cancelAdd" class="btn ghost">Cancel</button>
+      <button id="confirmAdd" class="btn primary">Add Tool</button>
+    </div>
+  </div>
+</div>
+
+<!-- Change Access Code Modal -->
+<div id="changeAccessModal" class="modal-backdrop">
+  <div class="modal">
+    <h2>Set Creator Access Code</h2>
+    <div class="inline-toggle">
+      <input id="newAccessCodeInput" type="password" placeholder="Enter new code (hidden)" />
+      <button id="toggleNewAccessShow" class="toggle-btn" type="button">Show</button>
+    </div>
+    <div class="row">
+      <button id="cancelChangeAccess" class="btn ghost">Cancel</button>
+      <button id="saveChangeAccess" class="btn primary">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Landing Message Modal -->
+<div id="editMessageModal" class="modal-backdrop">
+  <div class="modal" style="width:500px;">
+    <h2>Edit Landing Message</h2>
+    <textarea id="messageTextarea" placeholder="Enter your custom landing message here..." style="height:150px;resize:vertical;"></textarea>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button id="resetMessageBtn" class="btn ghost">Reset to Default</button>
+    </div>
+    <div class="row">
+      <button id="cancelEditMessage" class="btn ghost">Cancel</button>
+      <button id="saveEditMessage" class="btn primary">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Menu -->
+<section id="menu">
+  <div id="menuHeader" style="width:100%;max-width:960px;">
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button id="changeAccessBtn">Set Access Code</button>
+      <button id="goToLandingBtn">← Landing</button>
+      <button id="editMessageBtn">📝 Edit Message</button>
+      <h1 style="margin:0;color:var(--accent)">Hidden Tools</h1>
+    </div>
+    <div>
+      <button id="addToolBtn">➕ Add Tool</button>
+    </div>
+  </div>
+
+  <div id="toolList" style="width:100%;max-width:960px;"></div>
+  <footer>&copy; 2025 — Creator tools (original tools are fixed)</footer>
+</section>
+
+<!-- Original Tool Pages (these are fixed and cannot be deleted) -->
+
+<!-- Combined Code & URL Previewer -->
+<section id="code-tool" class="tool-page">
+  <button class="back-btn">← Back</button>
+  <div class="container">
+    <h1>Code & URL Previewer</h1>
+    
+    <!-- Tool Tabs -->
+    <div class="tool-tabs">
+      <button id="codeTab" class="tool-tab active">💻 HTML Code</button>
+      <button id="urlTab" class="tool-tab">🌐 URL Preview</button>
+    </div>
+    
+    <!-- Code Section -->
+    <div id="codeSection" class="tab-content active">
+      <textarea id="code" placeholder="Paste HTML here..."></textarea>
+      <div class="buttons">
+        <button id="runCodeBtn" class="btn primary">Preview</button>
+        <button id="importBtn" class="btn primary">📁 Import</button>
+        <button id="exportBtn" class="btn primary">💾 Export</button>
+        <button id="openNewTabBtn" class="btn primary">🔗 New Tab</button>
+        <button id="codeFullBtn" class="fullscreen-btn">⛶ Fullscreen</button>
+      </div>
+      <input id="importFile" type="file" accept=".html,.htm,.txt" style="display:none;">
+    </div>
+    
+    <!-- URL Section -->
+    <div id="urlSection" class="tab-content">
+      <div class="controls">
+        <input id="urlInput" type="text" placeholder="https://example.com">
+        <button id="runUrlBtn" class="btn primary">Preview</button>
+        <button id="urlOpenNewTabBtn" class="btn primary">🔗 New Tab</button>
+        <button id="urlFullBtn" class="fullscreen-btn">⛶ Fullscreen</button>
+      </div>
+    </div>
+    
+    <iframe id="preview" sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-top-navigation allow-popups-to-escape-sandbox"></iframe>
+  </div>
+</section>
+
+<!-- Base64 Encoder/Decoder -->
+<section id="base64-tool" class="tool-page">
+  <button class="back-btn">← Back</button>
+  <div class="container">
+    <h1>Base64 Encoder/Decoder</h1>
+    
+    <!-- Tool Tabs -->
+    <div class="tool-tabs">
+      <button id="encodeTab" class="tool-tab active">🔐 Encode</button>
+      <button id="decodeTab" class="tool-tab">🔓 Decode</button>
+    </div>
+    
+    <!-- Encode Section -->
+    <div id="encodeSection" class="tab-content active">
+      <textarea id="textToEncode" placeholder="Enter text to encode..."></textarea>
+      <div class="buttons">
+        <button id="encodeBtn" class="btn primary">Encode to Base64</button>
+      </div>
+      <textarea id="encodedResult" placeholder="Base64 result will appear here..." readonly></textarea>
+    </div>
+    
+    <!-- Decode Section -->
+    <div id="decodeSection" class="tab-content">
+      <textarea id="base64ToDecode" placeholder="Enter Base64 to decode..."></textarea>
+      <div class="buttons">
+        <button id="decodeBtn" class="btn primary">Decode from Base64</button>
+      </div>
+      <textarea id="decodedResult" placeholder="Decoded result will appear here..." readonly></textarea>
+    </div>
+  </div>
+</section>
+
+<!-- Data URI -->
+<section id="datauri-tool" class="tool-page">
+  <button class="back-btn">← Back</button>
+  <div class="container">
+    <h1>Data URI Generator</h1>
+    <select id="modeSelect">
+      <option value="html">Raw HTML</option>
+      <option value="url">Webpage URL</option>
+    </select>
+    <textarea id="htmlInput" placeholder="Enter HTML..."></textarea>
+    <input id="urlInputData" type="text" placeholder="https://example.com" style="display:none;margin-top:8px;">
+    <div class="buttons"><button id="generateBtn" class="btn primary">Generate</button></div>
+    <input id="outputLink" readonly style="margin-top:8px;width:100%;padding:8px;border-radius:6px;border:1px solid #334155;background:#0b1220;color:var(--text);">
+    <p id="loading" style="display:none;font-style:italic;color:var(--muted);">Loading...</p>
+  </div>
+</section>
+
+<script>
+/*
+  Final Creator Tools file
+  - DEFAULT_ENCODED is visible in the source but obfuscated (base64).
+  - Session-set code (Set Access Code) lives in sessionStorage and is not shown.
+  - Auto-logout on reload: session cleared and white flash plays for 0.5s.
+  - Access inputs are masked by default (type="password") with Show/Hide toggle.
+  - Original tools fixed; user tools persisted to localStorage.
+*/
+
+// -----------------------------
+// ADMIN MODE: Set to 1 to auto-login without authentication
+// -----------------------------
+const ADMIN_MODE = 0;
+
+// -----------------------------
+// DEFAULT (obfuscated) ACCESS CODE in-source (visible here)
+// -----------------------------
+// Replace DEFAULT_ENCODED value with btoa('your-code') if you want a different default.
+const DEFAULT_ENCODED = "R29vZ2xlLmNvbS8xMjMxMjM3Ng==";
+
+// session storage key for a user-set code in this tab (tab-lifetime override)
+const SESSION_ACCESS_KEY = 'creatorAccessInSession';
+
+// localStorage key for user-created tools
+const USER_TOOLS_KEY = 'creatorUserTools';
+
+// localStorage key for custom landing message
+const LANDING_MESSAGE_KEY = 'customLandingMessage';
+
+// default landing message
+const DEFAULT_MESSAGE = `A logarithm is a mathematical operation that is the inverse of exponentiation,<br>
+    essentially asking, "What exponent is needed for a specific base<br>
+    to produce a certain number?". For example, in the exponential<br>
+    equation 2³ = 8, the logarithm of 8 with a base of 2 is 3 (<em>log₂(8) = 3</em>).<br>
+    Logarithms convert multiplicative relationships into additive ones and are used in<br>
+    many scientific fields: earthquake intensity (Richter), loudness (dB), and acidity (pH).`;
+
+// helper: decode base64 safely
+function decodeBase64(str){
+  try { return atob(str); } catch(e){ return ''; }
+}
+
+// effective access code: prefer session override, else default
+function getEffectiveAccessCode(){
+  const sess = sessionStorage.getItem(SESSION_ACCESS_KEY);
+  if(sess) return sess;
+  return decodeBase64(DEFAULT_ENCODED);
+}
+
+// ----------------------------- DOM refs
+// -----------------------------
+const flashOverlay = document.getElementById('flashOverlay');
+const landing = document.getElementById('landing');
+const hiddenBtn = document.getElementById('hidden-btn');
+const accessModal = document.getElementById('accessModal');
+const accessInput = document.getElementById('accessCodeInput');
+const toggleAccessShow = document.getElementById('toggleAccessShow');
+const submitAccess = document.getElementById('submitAccess');
+const cancelAccess = document.getElementById('cancelAccess');
+
+const menu = document.getElementById('menu');
+const toolList = document.getElementById('toolList');
+const addModal = document.getElementById('addModal');
+const addToolBtn = document.getElementById('addToolBtn');
+const cancelAdd = document.getElementById('cancelAdd');
+const confirmAdd = document.getElementById('confirmAdd');
+const newToolName = document.getElementById('newToolName');
+const newToolHTML = document.getElementById('newToolHTML');
+
+const changeAccessModal = document.getElementById('changeAccessModal');
+const changeAccessBtn = document.getElementById('changeAccessBtn');
+const goToLandingBtn = document.getElementById('goToLandingBtn');
+const cancelChangeAccess = document.getElementById('cancelChangeAccess');
+const saveChangeAccess = document.getElementById('saveChangeAccess');
+const newAccessCodeInput = document.getElementById('newAccessCodeInput');
+const toggleNewAccessShow = document.getElementById('toggleNewAccessShow');
+
+const editMessageModal = document.getElementById('editMessageModal');
+const editMessageBtn = document.getElementById('editMessageBtn');
+const messageTextarea = document.getElementById('messageTextarea');
+const cancelEditMessage = document.getElementById('cancelEditMessage');
+const saveEditMessage = document.getElementById('saveEditMessage');
+const resetMessageBtn = document.getElementById('resetMessageBtn');
+
+// Original tool IDs
+const ORIGINAL_TOOLS = [
+  { id: 'code-tool', name: '💻 Code & URL Previewer' },
+  { id: 'base64-tool', name: '🔐 Base64 Encoder/Decoder' },
+  { id: 'datauri-tool', name: '🔗 Data URI Generator' }
+];
+
+// Track custom CSS elements for cleanup
+let customToolStyles = [];
+
+// -----------------------------
+// On load: play white flash (0.5s), clear session login flag, return to landing
+// -----------------------------
+window.addEventListener('load', () => {
+  // Clear session flag so reload always logs out the user (unless ADMIN_MODE)
+  if (!ADMIN_MODE) {
+    sessionStorage.removeItem('creatorLoggedIn');
+  }
+
+  // play quick white flash then show landing or auto-login
+  flashOverlay.style.opacity = '1';
+  setTimeout(() => {
+    flashOverlay.style.opacity = '0';
+    
+    // Auto-login if ADMIN_MODE is enabled
+    if (ADMIN_MODE) {
+      sessionStorage.setItem('creatorLoggedIn', 'true');
+      openMenu();
+    } else {
+      showLanding();
+      updateLandingMessage(); // Ensure custom message is loaded
+    }
+  }, 500); // 0.5s flash
+});
+
+// -----------------------------
+// utility show/hide
+// -----------------------------
+function showLanding(){
+  landing.style.display = 'flex';
+  menu.style.display = 'none';
+  updateLandingMessage();
+}
+
+function updateLandingMessage(){
+  const customMessage = localStorage.getItem(LANDING_MESSAGE_KEY);
+  const messageElement = document.getElementById('message');
+  if(customMessage){
+    messageElement.innerHTML = customMessage;
+  } else {
+    messageElement.innerHTML = DEFAULT_MESSAGE;
+  }
+}
+function openModal(modal){ modal.style.display = 'flex'; modal.querySelector('input,textarea')?.focus(); }
+function closeModal(modal){ modal.style.display = 'none'; }
+
+// -----------------------------
+// Access flow
+// -----------------------------
+hiddenBtn.addEventListener('click', ()=> openModal(accessModal));
+cancelAccess.addEventListener('click', ()=> closeModal(accessModal));
+
+// toggle show/hide for access input
+document.getElementById('toggleAccessShow')?.addEventListener('click', function(){
+  const inp = accessInput;
+  if(inp.type === 'password'){ inp.type = 'text'; this.textContent = 'Hide'; }
+  else { inp.type = 'password'; this.textContent = 'Show'; }
+});
+// toggle for set-access input
+document.getElementById('toggleNewAccessShow')?.addEventListener('click', function(){
+  const inp = newAccessCodeInput;
+  if(inp.type === 'password'){ inp.type = 'text'; this.textContent = 'Hide'; }
+  else { inp.type = 'password'; this.textContent = 'Show'; }
+});
+
+submitAccess.addEventListener('click', () => {
+  const attempt = accessInput.value.trim();
+  if(!attempt){ alert('Enter access code'); return; }
+  accessInput.value = '';
+  const codeNow = getEffectiveAccessCode();
+  if(attempt === codeNow){
+    sessionStorage.setItem('creatorLoggedIn','true');
+    closeModal(accessModal);
+    openMenu();
+  } else {
+    alert('Incorrect access code.');
+  }
+});
+
+// keyboard behavior
+accessInput.addEventListener('keydown', (e)=> {
+  if(e.key === 'Enter') submitAccess.click();
+  if(e.key === 'Escape') closeModal(accessModal);
+});
+
+// if already logged in this tab, open menu
+if(sessionStorage.getItem('creatorLoggedIn') === 'true'){
+  openMenu();
+}
+
+// -----------------------------
+// Render menu & tools
+// -----------------------------
+function openMenu(){
+  landing.style.display = 'none';
+  menu.style.display = 'flex';
+  renderToolList();
+}
+
+function renderToolList(){
+  toolList.innerHTML = '';
+  // original fixed tools
+  ORIGINAL_TOOLS.forEach(t => {
+    const el = document.createElement('div');
+    el.className = 'option';
+    el.textContent = t.name;
+    el.onclick = () => {
+      hideAllToolPages();
+      const existing = document.getElementById(t.id);
+      if(existing) existing.style.display = 'block';
+      menu.style.display = 'none';
+    };
+    toolList.appendChild(el);
+  });
+
+  // divider
+  const divider = document.createElement('div');
+  divider.style.height = '8px';
+  toolList.appendChild(divider);
+
+  // user tools
+  const userTools = JSON.parse(localStorage.getItem(USER_TOOLS_KEY) || '[]');
+  userTools.forEach(tool => {
+    const el = document.createElement('div');
+    el.className = 'option';
+    el.textContent = tool.name;
+
+    // delete button
+    const del = document.createElement('button');
+    del.className = 'delete-btn';
+    del.innerText = '×';
+    del.title = 'Delete user tool';
+    del.onclick = (e) => {
+      e.stopPropagation();
+      if(confirm('Delete this tool?')) {
+        const updated = JSON.parse(localStorage.getItem(USER_TOOLS_KEY) || '[]').filter(u => u.id !== tool.id);
+        localStorage.setItem(USER_TOOLS_KEY, JSON.stringify(updated));
+        const sec = document.getElementById(tool.id);
+        if(sec) sec.remove();
+        renderToolList();
+      }
+    };
+    el.appendChild(del);
+
+    el.onclick = () => {
+      hideAllToolPages();
+      const existing = document.getElementById(tool.id);
+      if(!existing){
+        createUserToolSection(tool);
+      } else {
+        existing.style.display = 'block';
+      }
+      menu.style.display = 'none';
+    };
+    toolList.appendChild(el);
+  });
+}
+
+function hideAllToolPages(){
+  const toolPages = document.querySelectorAll('.tool-page');
+  toolPages.forEach(p => p.style.display = 'none');
+  // Also hide custom tool pages and clean up their CSS
+  const customToolPages = document.querySelectorAll('.custom-tool-page');
+  customToolPages.forEach(p => p.style.display = 'none');
+  cleanupCustomToolStyles();
+}
+
+// Function to clean up custom tool styles
+function cleanupCustomToolStyles() {
+  customToolStyles.forEach(styleElement => {
+    if (styleElement && styleElement.parentNode) {
+      styleElement.parentNode.removeChild(styleElement);
+    }
+  });
+  customToolStyles = [];
+}
+
+// create a section for a user tool and execute its scripts
+function createUserToolSection(tool){
+  const sec = document.createElement('section');
+  sec.id = tool.id;
+  sec.className = 'custom-tool-page';
+  
+  // Create toolbar
+  const toolbar = document.createElement('div');
+  toolbar.className = 'custom-tool-toolbar';
+  toolbar.style.maxWidth = '960px';
+  toolbar.style.margin = '0 auto';
+  
+  // Back button
+  const backBtn = document.createElement('button');
+  backBtn.className = 'toolbar-btn back';
+  backBtn.innerHTML = '← Back';
+  backBtn.onclick = () => { 
+    hideAllToolPages();
+    sec.style.display = 'none'; 
+    menu.style.display = 'flex'; 
+  };
+  toolbar.appendChild(backBtn);
+  
+  // Separator
+  const sep1 = document.createElement('div');
+  sep1.className = 'toolbar-separator';
+  toolbar.appendChild(sep1);
+  
+  // Reload button
+  const reloadBtn = document.createElement('button');
+  reloadBtn.className = 'toolbar-btn reload';
+  reloadBtn.innerHTML = '🔄 Reload';
+  reloadBtn.onclick = () => {
+    const iframe = toolbar.nextElementSibling.querySelector('.custom-tool-content');
+    const base64Html = btoa(unescape(encodeURIComponent(tool.code)));
+    iframe.src = `data:text/html;base64,${base64Html}`;
+  };
+  toolbar.appendChild(reloadBtn);
+  
+  // New Tab button
+  const newTabBtn = document.createElement('button');
+  newTabBtn.className = 'toolbar-btn';
+  newTabBtn.innerHTML = '🔗 New Tab';
+  newTabBtn.onclick = () => {
+    const newWindow = window.open('about:blank', '_blank');
+    const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+    <title>${tool.name}</title>
+    <style>
+        body { margin: 20px; font-family: system-ui, -apple-system, sans-serif; }
+    </style>
+</head>
+<body>
+    ${tool.code}
+</body>
+</html>`;
+    newWindow.document.write(htmlContent);
+    newWindow.document.close();
+  };
+  toolbar.appendChild(newTabBtn);
+  
+  // Edit button (renamed from Import)
+  const editBtn = document.createElement('button');
+  editBtn.className = 'toolbar-btn';
+  editBtn.innerHTML = '✏️ Edit';
+  const editFile = document.createElement('input');
+  editFile.type = 'file';
+  editFile.accept = '.html,.htm,.txt';
+  editFile.style.display = 'none';
+  editFile.onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      tool.code = ev.target.result;
+      const userTools = JSON.parse(localStorage.getItem(USER_TOOLS_KEY) || '[]');
+      const toolIndex = userTools.findIndex(t => t.id === tool.id);
+      if (toolIndex >= 0) {
+        userTools[toolIndex].code = tool.code;
+        localStorage.setItem(USER_TOOLS_KEY, JSON.stringify(userTools));
+      }
+      const iframe = toolbar.nextElementSibling.querySelector('.custom-tool-content');
+      const base64Html = btoa(unescape(encodeURIComponent(tool.code)));
+      iframe.src = `data:text/html;base64,${base64Html}`;
+    };
+    reader.readAsText(file);
+  };
+  editBtn.onclick = () => {
+    const choice = confirm('Edit code manually (OK) or upload file (Cancel)?');
+    if (choice) {
+      // Edit manually
+      const newCode = prompt('Edit the tool code:', tool.code);
+      if (newCode !== null) {
+        tool.code = newCode;
+        const userTools = JSON.parse(localStorage.getItem(USER_TOOLS_KEY) || '[]');
+        const toolIndex = userTools.findIndex(t => t.id === tool.id);
+        if (toolIndex >= 0) {
+          userTools[toolIndex].code = tool.code;
+          localStorage.setItem(USER_TOOLS_KEY, JSON.stringify(userTools));
+        }
+        // Clean up any previous styles before reloading
+        hideAllToolPages();
+        const iframe = toolbar.nextElementSibling.querySelector('.custom-tool-content');
+        const base64Html = btoa(unescape(encodeURIComponent(tool.code)));
+        iframe.src = `data:text/html;base64,${base64Html}`;
+      }
+    } else {
+      // Upload file
+      editFile.click();
+    }
+  };
+  toolbar.appendChild(editBtn);
+  toolbar.appendChild(editFile);
+  
+  // Export button
+  const exportBtn = document.createElement('button');
+  exportBtn.className = 'toolbar-btn';
+  exportBtn.innerHTML = '💾 Export';
+  exportBtn.onclick = () => {
+    const blob = new Blob([tool.code], { type: 'text/html' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${tool.name.replace(/[^a-zA-Z0-9]/g, '_')}.html`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+  toolbar.appendChild(exportBtn);
+  
+  // Fullscreen button
+  const fullscreenBtn = document.createElement('button');
+  fullscreenBtn.className = 'toolbar-btn';
+  fullscreenBtn.innerHTML = '⛶ Fullscreen';
+  fullscreenBtn.onclick = () => {
+    const iframe = toolbar.nextElementSibling.querySelector('.custom-tool-content');
+    if (!document.fullscreenElement) {
+      iframe.requestFullscreen?.().catch(() => {});
+    } else {
+      document.exitFullscreen?.();
+    }
+  };
+  toolbar.appendChild(fullscreenBtn);
+  
+  sec.appendChild(toolbar);
+  
+  const container = document.createElement('div');
+  container.className = 'custom-tool-container';
+  const iframe = document.createElement('iframe');
+  iframe.className = 'custom-tool-content';
+  iframe.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups allow-modals';
+  const base64Html = btoa(unescape(encodeURIComponent(tool.code)));
+  iframe.src = `data:text/html;base64,${base64Html}`;
+  container.appendChild(iframe);
+  sec.appendChild(container);
+  document.body.appendChild(sec);
+  sec.style.display = 'block';
+}
+
+// -----------------------------
+// Add Tool logic (persisted in localStorage)
+// -----------------------------
+addToolBtn.addEventListener('click', () => {
+  if(sessionStorage.getItem('creatorLoggedIn') !== 'true'){ alert('Access required. Click the landing area and enter the code.'); return; }
+  newToolName.value = '';
+  newToolHTML.value = '';
+  openModal(addModal);
+});
+cancelAdd.addEventListener('click', ()=> closeModal(addModal));
+confirmAdd.addEventListener('click', () => {
+  const name = newToolName.value.trim();
+  const code = document.getElementById('pasteContent').classList.contains('active') 
+    ? newToolHTML.value.trim() 
+    : document.getElementById('toolFileInput').dataset.content || '';
+  if(!name || !code){ alert('Enter tool name and HTML code.'); return; }
+  const id = 'user-' + Date.now();
+  const userTools = JSON.parse(localStorage.getItem(USER_TOOLS_KEY) || '[]');
+  userTools.push({ id, name, code });
+  localStorage.setItem(USER_TOOLS_KEY, JSON.stringify(userTools));
+  closeModal(addModal);
+  renderToolList();
+});
+
+// Add tool tab functionality
+document.getElementById('pasteTab').addEventListener('click', () => {
+    document.getElementById('pasteTab').classList.add('active');
+    document.getElementById('uploadTab').classList.remove('active');
+    document.getElementById('pasteContent').classList.add('active');
+    document.getElementById('uploadContent').classList.remove('active');
+});
+
+document.getElementById('uploadTab').addEventListener('click', () => {
+    document.getElementById('uploadTab').classList.add('active');
+    document.getElementById('pasteTab').classList.remove('active');
+    document.getElementById('uploadContent').classList.add('active');
+    document.getElementById('pasteContent').classList.remove('active');
+});
+
+// File upload functionality
+document.getElementById('toolFileInput').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+        const content = ev.target.result;
+        document.getElementById('toolFileInput').dataset.content = content;
+    };
+    reader.readAsText(file);
+});
+
+// -----------------------------
+// Change access code: store new value in sessionStorage only (tab-lifetime)
+// UI never reveals the current stored code
+// -----------------------------
+changeAccessBtn.addEventListener('click', ()=> {
+  newAccessCodeInput.value = '';
+  openModal(changeAccessModal);
+});
+
+// Go to Landing button
+goToLandingBtn.addEventListener('click', ()=> {
+  // Clear the session login flag and return to landing
+  sessionStorage.removeItem('creatorLoggedIn');
+  showLanding();
+});
+
+// Edit Message functionality
+editMessageBtn.addEventListener('click', ()=> {
+  const customMessage = localStorage.getItem(LANDING_MESSAGE_KEY);
+  messageTextarea.value = customMessage ? customMessage.replace(/<br>/g, '\n').replace(/<\/?em>/g, '') : DEFAULT_MESSAGE.replace(/<br>/g, '\n').replace(/<\/?em>/g, '');
+  openModal(editMessageModal);
+});
+
+cancelEditMessage.addEventListener('click', ()=> closeModal(editMessageModal));
+
+saveEditMessage.addEventListener('click', ()=> {
+  const newMessage = messageTextarea.value.trim();
+  if(!newMessage){ alert('Message cannot be empty'); return; }
+  // Convert line breaks to <br> tags for HTML display
+  const htmlMessage = newMessage.replace(/\n/g, '<br>');
+  localStorage.setItem(LANDING_MESSAGE_KEY, htmlMessage);
+  closeModal(editMessageModal);
+  updateLandingMessage();
+  alert('Landing message updated!');
+});
+
+resetMessageBtn.addEventListener('click', ()=> {
+  if(confirm('Reset to the default logarithms message?')){
+    localStorage.removeItem(LANDING_MESSAGE_KEY);
+    messageTextarea.value = DEFAULT_MESSAGE.replace(/<br>/g, '\n').replace(/<\/?em>/g, '');
+    updateLandingMessage();
+    alert('Message reset to default!');
+  }
+});
+
+cancelChangeAccess.addEventListener('click', ()=> closeModal(changeAccessModal));
+saveChangeAccess.addEventListener('click', ()=> {
+  const v = newAccessCodeInput.value.trim();
+  if(!v){ alert('Enter a code'); return; }
+  sessionStorage.setItem(SESSION_ACCESS_KEY, v);
+  // do not expose the value anywhere in UI
+  alert('Access code saved for this tab (will remain until the tab is closed).');
+  closeModal(changeAccessModal);
+});
+
+// -----------------------------
+// Enhanced tool logic
+// -----------------------------
+
+// Combined Code & URL Previewer functionality
+document.getElementById('codeTab').onclick = () => {
+    document.getElementById('codeTab').classList.add('active');
+    document.getElementById('urlTab').classList.remove('active');
+    document.getElementById('codeSection').classList.add('active');
+    document.getElementById('urlSection').classList.remove('active');
+};
+
+document.getElementById('urlTab').onclick = () => {
+    document.getElementById('urlTab').classList.add('active');
+    document.getElementById('codeTab').classList.remove('active');
+    document.getElementById('urlSection').classList.add('active');
+    document.getElementById('codeSection').classList.remove('active');
+};
+
+document.getElementById('runCodeBtn').onclick = () => {
+    document.getElementById('preview').srcdoc = document.getElementById('code').value;
+};
+
+document.getElementById('runUrlBtn').onclick = () => {
+    const url = document.getElementById('urlInput').value.trim();
+    if(!url){ alert('Enter URL'); return; }
+    const finalUrl = /^https?:\/\//.test(url) ? url : 'https://' + url;
+    document.getElementById('preview').src = finalUrl;
+};
+
+// URL section buttons functionality
+document.getElementById('urlOpenNewTabBtn').onclick = () => {
+    const url = document.getElementById('urlInput').value.trim();
+    if(!url){ alert('Enter URL'); return; }
+    const finalUrl = /^https?:\/\//.test(url) ? url : 'https://' + url;
+            
+    const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+    <title>URL Viewer - ${finalUrl}</title>
+    <style>
+        body { margin: 0; padding: 0; overflow: hidden; }
+        iframe { width: 100%; height: 100vh; border: none; }
+    </style>
+</head>
+<body>
+    <iframe src="${finalUrl}" title="URL Content"></iframe>
+</body>
+</html>`;
+    
+    const newWindow = window.open('about:blank', '_blank');
+    newWindow.document.write(htmlContent);
+    newWindow.document.close();
+};
+
+document.getElementById('importBtn').onclick = () => {
+    document.getElementById('importFile').click();
+};
+
+document.getElementById('importFile').onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+        document.getElementById('code').value = ev.target.result;
+    };
+    reader.readAsText(file);
+};
+
+document.getElementById('exportBtn').onclick = () => {
+    const content = document.getElementById('code').value;
+    const blob = new Blob([content], { type: 'text/html' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'exported_code.html';
+    a.click();
+    URL.revokeObjectURL(a.href);
+};
+
+document.getElementById('openNewTabBtn').onclick = () => {
+    const content = document.getElementById('code').value;
+    
+    const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+    <title>HTML Code Preview</title>
+    <style>
+        body { margin: 0; padding: 0; overflow: hidden; }
+        iframe { width: 100%; height: 100vh; border: none; }
+    </style>
+</head>
+<body>
+    <iframe srcdoc="${content.replace(/"/g, '&quot;')}" title="HTML Content"></iframe>
+</body>
+</html>`;
+    
+    const newWindow = window.open('about:blank', '_blank');
+    newWindow.document.write(htmlContent);
+    newWindow.document.close();
+};
+
+// Base64 Encoder/Decoder functionality
+document.getElementById('encodeTab').onclick = () => {
+    document.getElementById('encodeTab').classList.add('active');
+    document.getElementById('decodeTab').classList.remove('active');
+    document.getElementById('encodeSection').classList.add('active');
+    document.getElementById('decodeSection').classList.remove('active');
+};
+
+document.getElementById('decodeTab').onclick = () => {
+    document.getElementById('decodeTab').classList.add('active');
+    document.getElementById('encodeTab').classList.remove('active');
+    document.getElementById('decodeSection').classList.add('active');
+    document.getElementById('encodeSection').classList.remove('active');
+};
+
+document.getElementById('encodeBtn').onclick = () => {
+    const text = document.getElementById('textToEncode').value;
+    try {
+        const encoded = btoa(unescape(encodeURIComponent(text)));
+        document.getElementById('encodedResult').value = encoded;
+    } catch (e) {
+        alert('Error encoding text: ' + e.message);
+    }
+};
+
+document.getElementById('decodeBtn').onclick = () => {
+    const base64 = document.getElementById('base64ToDecode').value.trim();
+    try {
+        const decoded = decodeURIComponent(escape(atob(base64)));
+        document.getElementById('decodedResult').value = decoded;
+    } catch (e) {
+        alert('Error decoding Base64: ' + e.message);
+    }
+};
+
+const downloadBtn = document.getElementById('downloadBtn');
+if (downloadBtn) {
+  downloadBtn.onclick = () => {
+    const c = document.getElementById('html-download-code').value;
+    const blob = new Blob([c], { type: 'text/html' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'my_page.html';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+}
+document.getElementById('modeSelect').onchange = function(){
+  document.getElementById('htmlInput').style.display = this.value === 'html' ? 'block' : 'none';
+  document.getElementById('urlInputData').style.display = this.value === 'url' ? 'block' : 'none';
+};
+document.getElementById('generateBtn').onclick = () => {
+  const out = document.getElementById('outputLink');
+  if(document.getElementById('modeSelect').value === 'html'){
+    const html = document.getElementById('htmlInput').value;
+    if(!html){ alert('Enter HTML'); return; }
+    // Use base64 encoding for HTML
+    const base64Html = btoa(unescape(encodeURIComponent(html)));
+    out.value = `data:text/html;base64,${base64Html}`;
+  } else {
+    const url = document.getElementById('urlInputData').value;
+    if(!url){ alert('Enter URL'); return; }
+    // Create base64 encoded HTML that contains an iframe
+    const iframeHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>URL Viewer</title></head><body style="margin:0;padding:0;"><iframe src="${url}" style="width:100%;height:100vh;border:none;"></iframe></body></html>`;
+    const base64Html = btoa(unescape(encodeURIComponent(iframeHtml)));
+    out.value = `data:text/html;base64,${base64Html}`;
+  }
+};
+
+// Fullscreen toggles
+function toggleFullscreen(el){
+  if(!document.fullscreenElement){ el.requestFullscreen?.().catch(()=>{}); }
+  else{ document.exitFullscreen?.(); }
+}
+document.getElementById('urlFullBtn').onclick = () => toggleFullscreen(document.getElementById('preview'));
+document.getElementById('codeFullBtn').onclick = () => toggleFullscreen(document.getElementById('preview'));
+
+// Back buttons for original tools
+try {
+  const backButtons = document.querySelectorAll('.tool-page .back-btn');
+  console.log('Found back buttons:', backButtons.length);
+  
+  backButtons.forEach((b, index) => {
+    if (b) {
+      console.log('Setting up back button', index);
+      b.onclick = () => { 
+        console.log('Back button clicked'); // Debug log
+        document.querySelectorAll('.tool-page').forEach(p => p.style.display = 'none');
+        const menu = document.getElementById('menu');
+        if (menu) {
+          menu.style.display = 'flex';
+        } else {
+          console.error('Menu element not found');
+        }
+      };
+    } else {
+      console.error('Back button', index, 'is null');
+    }
+  });
+} catch (error) {
+  console.error('Error setting up back buttons:', error);
+}
+
+/* End of script */
+</script>
+</body>
+</html>
