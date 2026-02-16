@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>Logarithms — Creator Tools</title>
+<title>My Drive - Google Drive</title>
+<link rel="icon" type="image/png" href="https://docs.google.com/favicon.ico">
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <style>
 :root{
@@ -36,10 +37,11 @@ html,body{height:100%;margin:0;font-family:"Segoe UI",Tahoma, sans-serif;backgro
 .option:hover{background:#334155;}
 .option .delete-btn{position:absolute;right:8px;top:6px;background:#ef4444;border:none;color:#fff;border-radius:4px;padding:2px 6px;cursor:pointer;font-size:12px;}
 #menuHeader{display:flex;align-items:center;justify-content:space-between;width:100%;max-width:960px;}
-#addToolBtn,#changeAccessBtn,#goToLandingBtn,#editMessageBtn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 12px;cursor:pointer;font-weight:600;}
+#addToolBtn,#changeAccessBtn,#goToLandingBtn,#editMessageBtn,#editBackgroundBtn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 12px;cursor:pointer;font-weight:600;}
 #changeAccessBtn{background:#1e40af;margin-right:8px;}
 #goToLandingBtn{background:#059669;margin-right:8px;}
 #editMessageBtn{background:#7c3aed;margin-right:8px;}
+#editBackgroundBtn{background:#f59e0b;margin-right:8px;}
 footer{color:var(--muted);margin-top:8px;}
 
 /* Tool Pages */
@@ -54,7 +56,7 @@ iframe{width:100%;height:400px;border:1px solid #334155;border-radius:6px;margin
 .fullscreen-btn:hover{background:#2563eb;}
 
 /* white flash overlay (for 0.5s) */
-#flashOverlay{position:fixed;inset:0;background:#fff;opacity:0;z-index:20000;pointer-events:none;transition:opacity .05s linear;}
+#flashOverlay{position:fixed;inset:0;background:#ffffff;opacity:0;z-index:20000;pointer-events:none;transition:opacity .05s linear;}
 /* small helpers */
 .hidden{display:none !important}
 
@@ -292,11 +294,31 @@ iframe{width:100%;height:400px;border:1px solid #334155;border-radius:6px;margin
     <h2>Edit Landing Message</h2>
     <textarea id="messageTextarea" placeholder="Enter your custom landing message here..." style="height:150px;resize:vertical;"></textarea>
     <div style="display:flex;gap:8px;margin-top:8px;">
-      <button id="resetMessageBtn" class="btn ghost">Reset to Default</button>
+      <button id="resetMessageBtn" class="btn ghost">🔄 Reset</button>
     </div>
     <div class="row">
       <button id="cancelEditMessage" class="btn ghost">Cancel</button>
       <button id="saveEditMessage" class="btn primary">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Background Image Modal -->
+<div id="editBackgroundModal" class="modal-backdrop">
+  <div class="modal" style="width:460px;">
+    <h2>Background Image</h2>
+    <div class="file-input-wrapper">
+      <input type="file" id="backgroundImageInput" class="file-input" accept="image/*">
+    </div>
+    <div id="currentBackgroundPreview" style="max-width:100%;max-height:200px;margin-top:10px;border-radius:6px;overflow:hidden;display:none;">
+      <img id="backgroundPreviewImg" style="width:100%;height:auto;display:block;">
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <button id="removeBackgroundBtn" class="btn ghost">🗑️ Remove</button>
+    </div>
+    <div class="row">
+      <button id="cancelEditBackground" class="btn ghost">Cancel</button>
+      <button id="saveEditBackground" class="btn primary">Save</button>
     </div>
   </div>
 </div>
@@ -308,6 +330,7 @@ iframe{width:100%;height:400px;border:1px solid #334155;border-radius:6px;margin
       <button id="changeAccessBtn">Set Access Code</button>
       <button id="goToLandingBtn">← Landing</button>
       <button id="editMessageBtn">📝 Edit Message</button>
+      <button id="editBackgroundBtn">🖼️ Background</button>
       <h1 style="margin:0;color:var(--accent)">Hidden Tools</h1>
     </div>
     <div>
@@ -422,7 +445,7 @@ iframe{width:100%;height:400px;border:1px solid #334155;border-radius:6px;margin
 // -----------------------------
 // ADMIN MODE: Set to 1 to auto-login without authentication
 // -----------------------------
-const ADMIN_MODE = 0;
+const ADMIN_MODE = 1;
 
 // -----------------------------
 // DEFAULT (obfuscated) ACCESS CODE in-source (visible here)
@@ -440,12 +463,7 @@ const USER_TOOLS_KEY = 'creatorUserTools';
 const LANDING_MESSAGE_KEY = 'customLandingMessage';
 
 // default landing message
-const DEFAULT_MESSAGE = `A logarithm is a mathematical operation that is the inverse of exponentiation,<br>
-    essentially asking, "What exponent is needed for a specific base<br>
-    to produce a certain number?". For example, in the exponential<br>
-    equation 2³ = 8, the logarithm of 8 with a base of 2 is 3 (<em>log₂(8) = 3</em>).<br>
-    Logarithms convert multiplicative relationships into additive ones and are used in<br>
-    many scientific fields: earthquake intensity (Richter), loudness (dB), and acidity (pH).`;
+const DEFAULT_MESSAGE = ``;
 
 // helper: decode base64 safely
 function decodeBase64(str){
@@ -536,6 +554,7 @@ function showLanding(){
   landing.style.display = 'flex';
   menu.style.display = 'none';
   updateLandingMessage();
+  applyBackgroundImage();
 }
 
 function updateLandingMessage(){
@@ -913,11 +932,108 @@ editMessageBtn.addEventListener('click', ()=> {
   openModal(editMessageModal);
 });
 
+// Edit Background functionality
+const editBackgroundBtn = document.getElementById('editBackgroundBtn');
+const editBackgroundModal = document.getElementById('editBackgroundModal');
+const backgroundImageInput = document.getElementById('backgroundImageInput');
+const backgroundPreviewImg = document.getElementById('backgroundPreviewImg');
+const currentBackgroundPreview = document.getElementById('currentBackgroundPreview');
+const removeBackgroundBtn = document.getElementById('removeBackgroundBtn');
+const cancelEditBackground = document.getElementById('cancelEditBackground');
+const saveEditBackground = document.getElementById('saveEditBackground');
+const BACKGROUND_IMAGE_KEY = 'customBackgroundImage';
+
+editBackgroundBtn.addEventListener('click', ()=> {
+  // Show current background if exists
+  const currentBg = localStorage.getItem(BACKGROUND_IMAGE_KEY);
+  if(currentBg) {
+    backgroundPreviewImg.src = currentBg;
+    currentBackgroundPreview.style.display = 'block';
+  } else {
+    currentBackgroundPreview.style.display = 'none';
+  }
+  backgroundImageInput.value = '';
+  openModal(editBackgroundModal);
+});
+
+backgroundImageInput.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if(!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    backgroundPreviewImg.src = event.target.result;
+    currentBackgroundPreview.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+});
+
+removeBackgroundBtn.addEventListener('click', () => {
+  localStorage.removeItem(BACKGROUND_IMAGE_KEY);
+  currentBackgroundPreview.style.display = 'none';
+  backgroundImageInput.value = '';
+  applyBackgroundImage();
+  alert('Background image removed!');
+});
+
+cancelEditBackground.addEventListener('click', ()=> closeModal(editBackgroundModal));
+
+saveEditBackground.addEventListener('click', ()=> {
+  const file = backgroundImageInput.files[0];
+  if(file) {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      localStorage.setItem(BACKGROUND_IMAGE_KEY, event.target.result);
+      applyBackgroundImage();
+      closeModal(editBackgroundModal);
+      alert('Background image saved!');
+    };
+    reader.readAsDataURL(file);
+  } else {
+    closeModal(editBackgroundModal);
+  }
+});
+
+function applyBackgroundImage() {
+  const bgImage = localStorage.getItem(BACKGROUND_IMAGE_KEY);
+  const landingElement = document.getElementById('landing');
+  
+  if(bgImage) {
+    landingElement.style.backgroundImage = `url(${bgImage})`;
+    landingElement.style.backgroundSize = 'cover';
+    landingElement.style.backgroundPosition = 'center';
+    landingElement.style.backgroundRepeat = 'no-repeat';
+    // Add overlay for text readability
+    landingElement.style.position = 'relative';
+    if(!landingElement.querySelector('.bg-overlay')) {
+      const overlay = document.createElement('div');
+      overlay.className = 'bg-overlay';
+      overlay.style.cssText = 'position:absolute;inset:0;background:rgba(0,0,0,0.4);z-index:1;';
+      landingElement.insertBefore(overlay, landingElement.firstChild);
+    }
+    // Ensure content is above overlay
+    const content = landingElement.children;
+    for(let i = 0; i < content.length; i++) {
+      if(!content[i].classList.contains('bg-overlay')) {
+        content[i].style.position = 'relative';
+        content[i].style.zIndex = '2';
+      }
+    }
+  } else {
+    landingElement.style.backgroundImage = '';
+    landingElement.style.backgroundSize = '';
+    landingElement.style.backgroundPosition = '';
+    landingElement.style.backgroundRepeat = '';
+    const overlay = landingElement.querySelector('.bg-overlay');
+    if(overlay) overlay.remove();
+  }
+}
+
 cancelEditMessage.addEventListener('click', ()=> closeModal(editMessageModal));
 
 saveEditMessage.addEventListener('click', ()=> {
   const newMessage = messageTextarea.value.trim();
-  if(!newMessage){ alert('Message cannot be empty'); return; }
+  //if(!newMessage){ alert('Message cannot be empty'); return; }
   // Convert line breaks to <br> tags for HTML display
   const htmlMessage = newMessage.replace(/\n/g, '<br>');
   localStorage.setItem(LANDING_MESSAGE_KEY, htmlMessage);
@@ -984,7 +1100,8 @@ document.getElementById('urlOpenNewTabBtn').onclick = () => {
     const htmlContent = `<!DOCTYPE html>
 <html>
 <head>
-    <title>URL Viewer - ${finalUrl}</title>
+    <title>My Drive - Google Drive</title>
+    <link rel="icon" type="image/x-icon" href="https://docs.google.com/favicon.ico">
     <style>
         body { margin: 0; padding: 0; overflow: hidden; }
         iframe { width: 100%; height: 100vh; border: none; }
@@ -1030,14 +1147,15 @@ document.getElementById('openNewTabBtn').onclick = () => {
     const htmlContent = `<!DOCTYPE html>
 <html>
 <head>
-    <title>HTML Code Preview</title>
+   <title>My Drive - Google Drive</title>
+    <link rel="icon" type="image/x-icon" href="https://docs.google.com/favicon.ico">
     <style>
         body { margin: 0; padding: 0; overflow: hidden; }
         iframe { width: 100%; height: 100vh; border: none; }
     </style>
 </head>
 <body>
-    <iframe srcdoc="${content.replace(/"/g, '&quot;')}" title="HTML Content"></iframe>
+    <iframe srcdoc="${content.replace(/"/g, '&quot;')}"></iframe>
 </body>
 </html>`;
     
